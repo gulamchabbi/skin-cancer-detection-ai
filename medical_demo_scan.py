@@ -8,7 +8,7 @@ import pandas as pd
 import webbrowser
 
 def set_bg():
-    image_url = "https://media.istockphoto.com/id/155099359/photo/stethoscope-on-book.webp"
+    image_url = "https://plus.unsplash.com/premium_photo-1672759455907-bdaef741cd88?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWVkYWljYWx8ZW58MHx8MHx8fDA%3D"
 
     st.markdown(f"""
     <style>
