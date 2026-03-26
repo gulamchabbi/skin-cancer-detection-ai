@@ -7,6 +7,14 @@ from PIL import Image
 import pandas as pd
 import webbrowser
 
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="Skin Disease Detection AI",
+    page_icon="⚕️",
+    layout="wide"
+)
+
+# ---------------- PREMIUM UI (BACKGROUND) ----------------
 def load_css():
     st.markdown("""
     <style>
@@ -18,7 +26,7 @@ def load_css():
         background-attachment: fixed;
     }
 
-    /* DARK OVERLAY (THIS IS THE SECRET 🔥) */
+    /* DARK OVERLAY */
     .stApp::before {
         content: "";
         position: fixed;
@@ -30,7 +38,7 @@ def load_css():
         z-index: 0;
     }
 
-    /* KEEP CONTENT ABOVE BACKGROUND */
+    /* KEEP CONTENT ABOVE */
     .main {
         position: relative;
         z-index: 1;
@@ -45,7 +53,7 @@ def load_css():
         box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
 
-    /* TEXT WHITE */
+    /* TEXT COLOR */
     h1, h2, h3, h4, p, label {
         color: white !important;
     }
@@ -58,11 +66,14 @@ def load_css():
     </style>
     """, unsafe_allow_html=True)
 
-# 👉 APPLY BACKGROUND
-set_bg()
+# 👉 APPLY CSS
+load_css()
 
+# ---------------- SESSION ----------------
+if "results" not in st.session_state:
+    st.session_state.results = None
 
-# --- MEDICAL DATABASE ---
+# ---------------- MEDICAL DATABASE ----------------
 MEDICAL_DB = {
     "Melanoma": {
         "severity": "critical",
@@ -84,33 +95,32 @@ MEDICAL_DB = {
     }
 }
 
-# --- MODEL ---
+# ---------------- MODEL ----------------
 @st.cache_resource
 def load_model():
     return pipeline("image-classification", model="Anwarkh1/Skin_Cancer-Image_Classification")
 
-
-# --- SIDEBAR ---
+# ---------------- SIDEBAR ----------------
 with st.sidebar:
     st.title("⚙️ Controls")
     confidence_threshold = st.slider("Confidence (%)", 0, 100, 45)
+
     if st.button("Reset"):
         st.session_state.clear()
         st.rerun()
 
-
-# --- MAIN UI ---
-st.title("🏥 Skin Disease Detection AI")
-st.caption("Developed by Gulam N Chabbi")
+# ---------------- MAIN UI ----------------
+st.markdown("<h1 style='text-align:center;'>🏥 Skin Disease Detection AI</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;'>Developed by Gulam N Chabbi</p>", unsafe_allow_html=True)
 
 tab1, tab2, tab3 = st.tabs(["🔍 Scanner", "📚 Info", "📍 Help"])
 
-# --- TAB 1: SCANNER ---
+# ---------------- TAB 1 ----------------
 with tab1:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Upload Image")
+        st.markdown("### Upload Image")
         img_file = st.file_uploader("Upload Image", type=["jpg", "png", "jpeg"])
 
         if img_file:
@@ -120,14 +130,13 @@ with tab1:
             if st.button("Analyze"):
                 with st.spinner("Analyzing..."):
                     model = load_model()
-                    results = model(img)
-                    st.session_state['results'] = results
+                    st.session_state.results = model(img)
 
     with col2:
-        st.subheader("Results")
+        st.markdown("### Results")
 
-        if 'results' in st.session_state:
-            top = st.session_state['results'][0]
+        if st.session_state.results:
+            top = st.session_state.results[0]
             score = top['score'] * 100
             label = top['label'].replace('_', ' ').title()
 
@@ -136,7 +145,6 @@ with tab1:
             else:
                 info = MEDICAL_DB.get(label, MEDICAL_DB["Benign Keratosis"])
 
-                # Result UI
                 st.success(f"Detected: {label}")
                 st.metric("Confidence", f"{score:.2f}%")
 
@@ -150,17 +158,15 @@ with tab1:
                 st.markdown("### ⚠️ Action")
                 st.warning(info['action'])
 
-                # Chart
                 chart_data = pd.DataFrame([
                     {"Condition": r['label'], "Probability": r['score']*100}
-                    for r in st.session_state['results'][:3]
+                    for r in st.session_state.results[:3]
                 ])
                 st.bar_chart(chart_data.set_index("Condition"))
         else:
-            st.info("Upload an image to start analysis")
+            st.info("Upload image to start analysis")
 
-
-# --- TAB 2: INFO ---
+# ---------------- TAB 2 ----------------
 with tab2:
     st.header("📚 Disease Info")
 
@@ -181,12 +187,13 @@ with tab2:
 
     st.warning(data['action'])
 
-
-# --- TAB 3: HELP ---
+# ---------------- TAB 3 ----------------
 with tab3:
     st.header("📍 Find Dermatologist")
 
-    st.write("Click below to find nearby specialists")
-
     if st.button("Open Google Maps"):
         webbrowser.open("https://www.google.com/maps/search/dermatologist+near+me")
+
+# ---------------- FOOTER ----------------
+st.markdown("---")
+st.markdown("<p style='text-align:center;'>🚀 Developed by Gulam N Chabbi</p>", unsafe_allow_html=True)
